@@ -35,7 +35,7 @@ jobs:
           cache: true
       - name: Generate Android wrapper
         working-directory: apps/mobile
-        run: flutter create --platforms=android --org in.carebook .
+        run: flutter create --platforms=android --org com.carebook .
       - name: Allow local HTTP only in the private debug build
         working-directory: apps/mobile
         run: cp tool/test_AndroidManifest.xml android/app/src/debug/AndroidManifest.xml
