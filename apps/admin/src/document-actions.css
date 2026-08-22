@@ -1,0 +1,15 @@
+.link-button {
+  border: 0;
+  background: transparent;
+  color: #08766a;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:disabled {
+  color: #879995;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+

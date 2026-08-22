@@ -47,9 +47,9 @@ Prerequisites: Docker Desktop and Node.js 22+. The command creates `.env.testing
 
 - Admin: `http://localhost:8080`
 - API documentation: `http://localhost:4000/api/docs`
-- Admin number: `+919999990000`
-- Test OTP: `123456`
-- Patient/doctor app: use any unused valid Indian mobile number and OTP `123456`
+- Admin number: generated locally on first start and printed by `pnpm testing:up`
+- Test OTP: generated locally on first start and printed by `pnpm testing:up`
+- Patient/doctor app: use any unused valid Indian mobile number and the generated OTP
 - Payment: the app records a simulated successful payment; no real money is charged
 
 Stop with `pnpm testing:down`; inspect runtime logs with `pnpm testing:logs`. Test OTP/payment endpoints are disabled unless explicit non-production flags are enabled, and production preflight fails if either flag is on.

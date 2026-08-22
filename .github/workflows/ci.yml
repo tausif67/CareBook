@@ -1,0 +1,100 @@
+name: CareBook CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: carebook-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-and-admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: carebook_test
+          POSTGRES_USER: carebook
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U carebook -d carebook_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://carebook@localhost:5432/carebook_test?schema=public
+      REDIS_URL: redis://localhost:6379
+      ADMIN_WEB_ORIGIN: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate ephemeral CI-only secrets
+        run: |
+          echo "JWT_ACCESS_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "RAZORPAY_WEBHOOK_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @carebook/api prisma:generate
+      - name: Type-check idempotent seed fixtures
+        run: pnpm --filter @carebook/api exec tsc --noEmit --module NodeNext --moduleResolution NodeNext --target ES2023 --skipLibCheck --types node prisma/seed.ts
+      - run: pnpm verify
+      - run: pnpm lint
+      # Prisma 6 CLI/config has a build-time-only deepmerge-ts advisory. The API
+      # does not import that package at runtime, so this one advisory is scoped.
+      - run: pnpm audit --prod --audit-level high --ignore GHSA-ggr8-5vv4-36mx
+      - run: pnpm --filter @carebook/api exec prisma validate
+      - run: pnpm --filter @carebook/api prisma:deploy
+      - name: Verify migrations are fully applied
+        run: pnpm --filter @carebook/api exec prisma migrate status
+      - run: pnpm test
+      - run: pnpm --filter @carebook/api test:e2e
+      - run: pnpm build
+
+  container-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: api-and-admin
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API/worker image reproducibly
+        run: docker build --file apps/api/Dockerfile --tag carebook-api:ci .
+      - name: Verify API image runs as a non-root user
+        run: test "$(docker image inspect carebook-api:ci --format '{{.Config.User}}')" = "node"
+      - name: Build admin image reproducibly
+        run: docker build --file apps/admin/Dockerfile --build-arg VITE_API_BASE_URL=https://staging-api.example.com/api/v1 --tag carebook-admin:ci .
+
+  mobile-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate the uncommitted Android wrapper used by this portable source bundle
+        working-directory: apps/mobile
+        run: flutter create --platforms=android .
+      - working-directory: apps/mobile
+        run: flutter pub get
+      - working-directory: apps/mobile
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - working-directory: apps/mobile
+        run: flutter test
