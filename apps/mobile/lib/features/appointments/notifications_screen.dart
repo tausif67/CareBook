@@ -1,0 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../shared/providers.dart';
+class NotificationsScreen extends ConsumerWidget{const NotificationsScreen({super.key});@override Widget build(BuildContext context,WidgetRef ref)=>Scaffold(appBar:AppBar(title:const Text('Notifications')),body:FutureBuilder(future:ref.read(apiProvider).dio.get<List<dynamic>>('/notifications'),builder:(context,snapshot){if(!snapshot.hasData)return const Center(child:CircularProgressIndicator());final items=snapshot.data!.data??[];if(items.isEmpty)return const Center(child:Text('You are all caught up.'));return ListView.separated(padding:const EdgeInsets.all(18),itemCount:items.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(_,index){final item=items[index] as Map<String,dynamic>;return Card(child:ListTile(leading:const CircleAvatar(child:Icon(Icons.notifications_none)),title:Text(item['title'] as String),subtitle:Text(item['body'] as String)));});}));}
+

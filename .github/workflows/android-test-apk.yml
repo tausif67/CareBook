@@ -1,0 +1,53 @@
+name: CareBook Test APK
+
+on:
+  pull_request:
+    paths:
+      - apps/mobile/**
+      - .github/workflows/android-test-apk.yml
+  push:
+    branches: [main]
+    paths:
+      - apps/mobile/**
+      - .github/workflows/android-test-apk.yml
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: CareBook API base URL ending in /api/v1
+        required: true
+        default: http://10.0.2.2:4000/api/v1
+
+permissions:
+  contents: read
+
+env:
+  TEST_API_BASE_URL: ${{ inputs.api_base_url || 'http://10.0.2.2:4000/api/v1' }}
+
+jobs:
+  build-test-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate Android wrapper
+        working-directory: apps/mobile
+        run: flutter create --platforms=android --org in.carebook .
+      - name: Allow local HTTP only in the private debug build
+        working-directory: apps/mobile
+        run: cp tool/test_AndroidManifest.xml android/app/src/debug/AndroidManifest.xml
+      - working-directory: apps/mobile
+        run: flutter pub get
+      - working-directory: apps/mobile
+        run: flutter test
+      - name: Build account-free private test APK
+        working-directory: apps/mobile
+        run: flutter build apk --debug --dart-define=CAREBOOK_TEST_MODE=true --dart-define=API_BASE_URL="$TEST_API_BASE_URL"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CareBook-private-test-apk
+          path: apps/mobile/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 14

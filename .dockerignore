@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+CareBook-MVP-Source.zip
+docs
+apps/mobile

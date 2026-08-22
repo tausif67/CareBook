@@ -1,0 +1,23 @@
+{
+  "name": "carebook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CareBook doctor appointment marketplace MVP",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @carebook/api --filter @carebook/admin dev",
+    "build": "pnpm --filter @carebook/api build && pnpm --filter @carebook/admin build",
+    "test": "pnpm --filter @carebook/api test",
+    "lint": "pnpm --filter @carebook/api lint && pnpm --filter @carebook/admin lint",
+    "verify": "node scripts/verify-structure.mjs",
+    "preflight:production": "node scripts/production-preflight.mjs",
+    "smoke:staging": "node scripts/staging-smoke.mjs",
+    "testing:up": "node scripts/testing-release.mjs up",
+    "testing:down": "node scripts/testing-release.mjs down",
+    "testing:logs": "node scripts/testing-release.mjs logs",
+    "ci:quality": "pnpm verify && pnpm lint && pnpm test && pnpm build"
+  }
+}
