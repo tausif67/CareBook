@@ -91,14 +91,14 @@ class _DoctorRegistrationScreenState extends ConsumerState<DoctorRegistrationScr
       TextField(controller: experience, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Years of experience')), const SizedBox(height: 10),
       TextField(controller: fee, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Clinic consultation fee in ₹')), const SizedBox(height: 10),
       TextField(controller: about, maxLines: 3, decoration: const InputDecoration(labelText: 'About your practice')), const SizedBox(height: 10),
-      if (specializations.isNotEmpty) DropdownButtonFormField<String>(value: specializationId, items: specializations.map((value) { final item=value as Map<String,dynamic>; return DropdownMenuItem(value:item['id'] as String,child:Text(item['nameEn'] as String)); }).toList(), onChanged:(value)=>setState(()=>specializationId=value), decoration:const InputDecoration(labelText:'Primary specialization')),
+      if (specializations.isNotEmpty) DropdownButtonFormField<String>(initialValue: specializationId, items: specializations.map((value) { final item=value as Map<String,dynamic>; return DropdownMenuItem(value:item['id'] as String,child:Text(item['nameEn'] as String)); }).toList(), onChanged:(value)=>setState(()=>specializationId=value), decoration:const InputDecoration(labelText:'Primary specialization')),
       const SizedBox(height: 10),
-      if (clinics.isNotEmpty) DropdownButtonFormField<String>(value: clinicId, items: clinics.map((value) { final item=value as Map<String,dynamic>; return DropdownMenuItem(value:item['id'] as String,child:Text(item['name'] as String)); }).toList(), onChanged:(value)=>setState(()=>clinicId=value), decoration:const InputDecoration(labelText:'Clinic')),
+      if (clinics.isNotEmpty) DropdownButtonFormField<String>(initialValue: clinicId, items: clinics.map((value) { final item=value as Map<String,dynamic>; return DropdownMenuItem(value:item['id'] as String,child:Text(item['name'] as String)); }).toList(), onChanged:(value)=>setState(()=>clinicId=value), decoration:const InputDecoration(labelText:'Clinic')),
       const SizedBox(height: 16),
       Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Verification documents', style: TextStyle(fontWeight: FontWeight.w700)), const SizedBox(height: 6),
         const Text('Upload authentic PDF/JPG/PNG files. Files are encrypted and visible only to authorised verification staff.', style: TextStyle(color: Colors.black54)), const SizedBox(height: 12),
-        DropdownButtonFormField<String>(value: documentType, items: const [
+        DropdownButtonFormField<String>(initialValue: documentType, items: const [
           DropdownMenuItem(value:'MEDICAL_REGISTRATION',child:Text('Medical registration')),
           DropdownMenuItem(value:'QUALIFICATION',child:Text('Qualification proof')),
           DropdownMenuItem(value:'GOVERNMENT_ID',child:Text('Government ID')),
@@ -121,4 +121,3 @@ class _Progress extends StatelessWidget {
     Expanded(child:Divider()), CircleAvatar(child:Text('2')), Expanded(child:Divider()), CircleAvatar(child:Text('3')),
   ]);
 }
-
